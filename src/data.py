@@ -6,12 +6,10 @@ across runs and disjoint from the training images. The official 10k test set
 is loaded here for completeness but is only *consumed* by ``evaluate.py``.
 """
 
-import random
 import time
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset, Subset
@@ -20,28 +18,12 @@ from torchvision.datasets import CIFAR10
 from torchvision.transforms import Compose
 
 from src.config import CFG
+from src.utils import set_seed
 
 # CIFAR-10 images are 32x32; the padding for RandomCrop is an augmentation
 # choice, not a dataset constant, so it lives here rather than in Config.
 IMAGE_SIZE = 32
 CROP_PADDING = 4
-
-
-def set_seed(seed: int) -> None:
-    """Seed every RNG the pipeline can touch so runs are bit-for-bit repeatable.
-
-    Python's ``random``, NumPy, and torch each keep separate global generators,
-    and torchvision augmentations draw from torch's. cuDNN is additionally
-    forced to deterministic kernels: its autotuner ("benchmark") may pick
-    different convolution algorithms run-to-run, which changes float rounding
-    and therefore the trained weights.
-    """
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 
 
 def get_transforms() -> tuple[Compose, Compose]:
@@ -129,25 +111,30 @@ def get_dataloaders(
     return train_loader, val_loader, test_loader
 
 
-def export_sample_images(n: int = 8) -> list[Path]:
-    """Save the first ``n`` test images to ``CFG.samples_dir`` as PNGs.
+def export_sample_images() -> list[Path]:
+    """Save one test image per class to ``CFG.samples_dir`` as PNGs.
 
     These feed the later ``predict.py`` demo, which must accept ordinary image
     files rather than pre-processed tensors. The dataset is therefore loaded
     with ``transform=None`` so we get raw PIL images — writing back a
     normalised tensor would produce a garbled picture and would also leak the
     preprocessing step out of the inference script that is meant to own it.
-    The true label is baked into the filename for easy visual checking.
+
+    The first occurrence of each label is taken, in label order, so the demo
+    covers every class exactly once instead of whatever the first few test
+    images happen to be. The true label is baked into the filename.
     """
     out_dir = Path(CFG.samples_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     raw_test = CIFAR10(CFG.data_dir, train=False, download=True, transform=None)
+    # targets is a plain list of ints, so .index() gives the first occurrence
+    # without decoding any image.
     written: list[Path] = []
-    for i in range(n):
-        img, label = raw_test[i]
+    for label, name in enumerate(CFG.classes):
+        img, _ = raw_test[raw_test.targets.index(label)]
         assert isinstance(img, Image.Image)
-        path = out_dir / f"sample_{i}_{CFG.classes[label]}.png"
+        path = out_dir / f"sample_{label}_{name}.png"
         img.save(path)
         written.append(path)
     return written
