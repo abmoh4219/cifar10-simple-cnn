@@ -1,0 +1,33 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Packaging / build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Dataset download cache (re-created by torchvision on first run)
+data/
+
+# NOTE: artifacts/ is intentionally NOT ignored — the trained checkpoint
+# and plots are committed deliverables.
