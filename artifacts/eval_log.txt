@@ -1,0 +1,35 @@
+device     : cpu
+checkpoint : artifacts/best_model.pt
+  trained to epoch 19, val_acc 0.7480
+  config matches current CFG on seed, batch_size, mean, std
+
+test accuracy : 0.7587
+test loss     : 0.7177
+
+per-class metrics (weakest first):
+     class  support  correct  accuracy  precision  recall     f1
+       cat     1000      520    0.5200     0.6396  0.5200 0.5736
+      bird     1000      649    0.6490     0.6458  0.6490 0.6474
+       dog     1000      706    0.7060     0.6750  0.7060 0.6901
+      deer     1000      720    0.7200     0.7280  0.7200 0.7240
+     horse     1000      784    0.7840     0.8270  0.7840 0.8049
+  airplane     1000      806    0.8060     0.7288  0.8060 0.7654
+      ship     1000      838    0.8380     0.8405  0.8380 0.8393
+     truck     1000      846    0.8460     0.8376  0.8460 0.8418
+      frog     1000      857    0.8570     0.7728  0.8570 0.8127
+automobile     1000      861    0.8610     0.8813  0.8610 0.8710
+ macro avg    10000     7587    0.7587     0.7576  0.7587 0.7570
+
+top confusions:
+  166 cats were called dog (16.6% of all cats)
+  124 dogs were called cat (12.4% of all dogs)
+  83 cats were called frog (8.3% of all cats)
+  81 ships were called airplane (8.1% of all ships)
+  76 cats were called bird (7.6% of all cats)
+
+mean confidence when correct   : 0.7871
+mean confidence when incorrect : 0.5447
+
+metrics    : artifacts/test_metrics.json
+confusion  : artifacts/confusion_matrix.png
+misclassed : artifacts/misclassified.png
