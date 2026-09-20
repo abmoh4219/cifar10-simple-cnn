@@ -1,0 +1,31 @@
+device     : cpu
+parameters : 60,554 total / 60,554 trainable
+data       : 45,000 train / 5,000 val
+schedule   : 20 epochs, Adam lr=0.001, wd=0.0001, cosine decay
+
+epoch  1/20  train loss 1.5665 acc 0.4398  |  val loss 1.2097 acc 0.5616  |  lr 1.00e-03  60.3s  <- saved (artifacts/best_model.pt)
+epoch  2/20  train loss 1.2704 acc 0.5509  |  val loss 1.0359 acc 0.6340  |  lr 9.94e-04  59.8s  <- saved (artifacts/best_model.pt)
+epoch  3/20  train loss 1.1691 acc 0.5860  |  val loss 1.0008 acc 0.6548  |  lr 9.76e-04  58.7s  <- saved (artifacts/best_model.pt)
+epoch  4/20  train loss 1.1186 acc 0.6060  |  val loss 0.9352 acc 0.6730  |  lr 9.46e-04  57.8s  <- saved (artifacts/best_model.pt)
+epoch  5/20  train loss 1.0702 acc 0.6230  |  val loss 0.9070 acc 0.6804  |  lr 9.05e-04  59.3s  <- saved (artifacts/best_model.pt)
+epoch  6/20  train loss 1.0350 acc 0.6378  |  val loss 0.9060 acc 0.6776  |  lr 8.54e-04  59.3s
+epoch  7/20  train loss 1.0146 acc 0.6442  |  val loss 0.8900 acc 0.6910  |  lr 7.94e-04  59.7s  <- saved (artifacts/best_model.pt)
+epoch  8/20  train loss 0.9849 acc 0.6587  |  val loss 0.8713 acc 0.6958  |  lr 7.27e-04  61.0s  <- saved (artifacts/best_model.pt)
+epoch  9/20  train loss 0.9552 acc 0.6668  |  val loss 0.8678 acc 0.6932  |  lr 6.55e-04  62.8s
+epoch 10/20  train loss 0.9343 acc 0.6751  |  val loss 0.8112 acc 0.7172  |  lr 5.78e-04  67.7s  <- saved (artifacts/best_model.pt)
+epoch 11/20  train loss 0.9176 acc 0.6827  |  val loss 0.7987 acc 0.7208  |  lr 5.00e-04  58.7s  <- saved (artifacts/best_model.pt)
+epoch 12/20  train loss 0.8988 acc 0.6883  |  val loss 0.7856 acc 0.7268  |  lr 4.22e-04  69.8s  <- saved (artifacts/best_model.pt)
+epoch 13/20  train loss 0.8892 acc 0.6917  |  val loss 0.7750 acc 0.7318  |  lr 3.45e-04  59.2s  <- saved (artifacts/best_model.pt)
+epoch 14/20  train loss 0.8761 acc 0.6958  |  val loss 0.7586 acc 0.7386  |  lr 2.73e-04  58.9s  <- saved (artifacts/best_model.pt)
+epoch 15/20  train loss 0.8645 acc 0.7017  |  val loss 0.7505 acc 0.7388  |  lr 2.06e-04  58.8s  <- saved (artifacts/best_model.pt)
+epoch 16/20  train loss 0.8527 acc 0.7028  |  val loss 0.7411 acc 0.7412  |  lr 1.46e-04  58.4s  <- saved (artifacts/best_model.pt)
+epoch 17/20  train loss 0.8426 acc 0.7079  |  val loss 0.7363 acc 0.7434  |  lr 9.55e-05  59.1s  <- saved (artifacts/best_model.pt)
+epoch 18/20  train loss 0.8400 acc 0.7104  |  val loss 0.7278 acc 0.7466  |  lr 5.45e-05  59.4s  <- saved (artifacts/best_model.pt)
+epoch 19/20  train loss 0.8338 acc 0.7137  |  val loss 0.7270 acc 0.7480  |  lr 2.45e-05  59.8s  <- saved (artifacts/best_model.pt)
+epoch 20/20  train loss 0.8343 acc 0.7139  |  val loss 0.7256 acc 0.7474  |  lr 6.16e-06  59.5s
+
+total time   : 20.1 min (1208s)
+best val acc : 0.7480 at epoch 19
+checkpoint   : artifacts/best_model.pt
+history      : artifacts/history.csv
+curves       : artifacts/training_curves.png
