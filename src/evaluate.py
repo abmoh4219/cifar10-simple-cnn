@@ -26,75 +26,12 @@ from torch.utils.data import DataLoader
 
 from src.config import CFG
 from src.data import get_dataloaders
-from src.model import build_model
+from src.model import load_checkpoint
 from src.utils import get_device, set_seed
 
 METRICS_NAME = "test_metrics.json"
 CONFUSION_NAME = "confusion_matrix.png"
 MISCLASSIFIED_NAME = "misclassified.png"
-
-# Config fields that change what the pixels look like or how the split was
-# drawn. A checkpoint trained under different values cannot be compared to a
-# model evaluated under the current ones.
-CRITICAL_FIELDS = ("seed", "batch_size", "mean", "std")
-
-
-def load_checkpoint(path: Path | str, device: torch.device) -> tuple[nn.Module, dict[str, Any]]:
-    """Load weights from ``path`` into a fresh model, ready for inference.
-
-    Returns ``(model, metadata)`` where metadata is everything in the
-    checkpoint except the two state dicts — the provenance (epoch, val_acc,
-    config) without the megabytes of tensors.
-
-    ``map_location`` is passed so a checkpoint trained on CUDA can be loaded
-    on a CPU-only machine; without it, torch tries to restore tensors onto a
-    device that may not exist here.
-    """
-    checkpoint = torch.load(path, map_location=device, weights_only=False)
-
-    model = build_model()
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model.to(device)
-    # eval() switches BatchNorm to its running statistics and disables dropout.
-    # Without it the reported test accuracy would depend on batch composition.
-    model.eval()
-
-    metadata = {k: v for k, v in checkpoint.items() if not k.endswith("state_dict")}
-    print(f"checkpoint : {path}")
-    print(f"  trained to epoch {metadata['epoch']}, val_acc {metadata['val_acc']:.4f}")
-
-    _warn_on_config_mismatch(metadata.get("config", {}))
-    return model, metadata
-
-
-def _warn_on_config_mismatch(saved_config: dict[str, Any]) -> None:
-    """Warn if the checkpoint was trained under different preprocessing.
-
-    A mismatch in ``mean``/``std`` silently shifts every input pixel, and the
-    model still returns confident predictions — just wrong ones. That failure
-    is invisible without this check, so it is worth the ten lines.
-    """
-
-    def agrees(saved: Any, current: Any) -> bool:
-        # torch.save round-trips tuples faithfully, but a checkpoint written by
-        # another tool may hold lists — compare those by value, not by type.
-        if isinstance(current, tuple):
-            return isinstance(saved, (list, tuple)) and tuple(saved) == current
-        return saved == current
-
-    mismatches = [
-        (field, saved_config.get(field, "<missing>"), getattr(CFG, field))
-        for field in CRITICAL_FIELDS
-        if not agrees(saved_config.get(field, "<missing>"), getattr(CFG, field))
-    ]
-    if mismatches:
-        print("  WARNING: checkpoint config disagrees with current CFG:")
-        for field, saved, now in mismatches:
-            print(f"    {field}: checkpoint={saved!r}  current={now!r}")
-        print("  Predictions may be invalid — retrain or restore the original config.")
-    else:
-        print(f"  config matches current CFG on {', '.join(CRITICAL_FIELDS)}")
-
 
 @torch.no_grad()
 def evaluate(

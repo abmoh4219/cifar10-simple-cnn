@@ -1,5 +1,9 @@
 # CIFAR-10 simple CNN — runtime dependencies.
 # Minimum-version pins; install with: pip install -r requirements.txt
+#
+# On a CPU-only machine the default torch wheel pulls in several GB of CUDA
+# libraries that will never be used. Install the much smaller CPU build with:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 torch>=2.0
 torchvision>=0.15
 numpy>=1.24

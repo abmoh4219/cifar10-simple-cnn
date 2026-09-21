@@ -26,7 +26,7 @@ from torch import nn
 
 from src.config import CFG
 from src.data import get_transforms
-from src.model import build_model
+from src.model import load_checkpoint
 from src.utils import get_device
 
 IMAGE_SIZE = 32
@@ -34,23 +34,6 @@ IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 # Matches the files written by data.export_sample_images(), e.g.
 # "sample_3_cat.png" -> "cat".
 SAMPLE_NAME_PATTERN = re.compile(r"^sample_\d+_(?P<label>[a-z]+)$")
-
-
-def load_checkpoint(path: Path | str, device: torch.device) -> tuple[nn.Module, dict]:
-    """Rebuild the model and load weights from disk, ready for inference.
-
-    ``map_location`` lets a checkpoint trained on a GPU machine load on a
-    CPU-only one, which is the whole point of shipping a checkpoint file.
-    """
-    checkpoint = torch.load(path, map_location=device, weights_only=False)
-    model = build_model()
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model.to(device)
-    # eval() disables dropout and switches BatchNorm to its stored running
-    # statistics. Skipping it makes single-image predictions depend on noise.
-    model.eval()
-    metadata = {k: v for k, v in checkpoint.items() if not k.endswith("state_dict")}
-    return model, metadata
 
 
 def load_image(path: Path | str) -> torch.Tensor:
@@ -202,10 +185,10 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     device = get_device()
-    model, metadata = load_checkpoint(checkpoint_path, device)
     print(f"device     : {device}")
-    print(f"checkpoint : {checkpoint_path}")
-    print(f"  trained to epoch {metadata['epoch']}, val_acc {metadata['val_acc']:.4f}")
+    # The shared loader prints the checkpoint provenance and verifies that the
+    # config it was trained under still matches the current CFG.
+    model, _metadata = load_checkpoint(checkpoint_path, device)
     print(f"images     : {len(image_paths)}\n")
 
     results: list[tuple[Path, list[tuple[str, float]], str | None]] = []
