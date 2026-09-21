@@ -97,12 +97,21 @@ def _warn_on_config_mismatch(saved_config: dict[str, Any]) -> None:
 
 
 @torch.no_grad()
-def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dict[str, Any]:
+def evaluate(
+    model: nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    max_misclassified: int = 16,
+) -> dict[str, Any]:
     """Run the test set once and collect everything downstream reporting needs.
 
-    Predictions, labels and confidences are gathered in a single pass rather
-    than recomputed per metric — the test set must be read exactly once, and
-    every figure below is derived from these same arrays.
+    Every number and figure in this module is derived from this single pass.
+    That includes the example failures for ``plot_misclassified``: collecting
+    them here, rather than iterating the loader a second time, is what lets
+    the module honestly claim the test set is read exactly once.
+
+    Images are de-normalised at collection time because the batch tensor is
+    reused and overwritten on the next iteration.
     """
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
@@ -111,6 +120,7 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dict
     all_true: list[np.ndarray] = []
     all_pred: list[np.ndarray] = []
     all_conf: list[np.ndarray] = []
+    misclassified: list[tuple[np.ndarray, int, int, float]] = []
 
     for inputs, targets in loader:
         inputs, targets = inputs.to(device), targets.to(device)
@@ -123,6 +133,19 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dict
         all_pred.append(pred.cpu().numpy())
         all_conf.append(conf.cpu().numpy())
 
+        if len(misclassified) < max_misclassified:
+            for idx in (pred != targets).nonzero(as_tuple=True)[0]:
+                misclassified.append(
+                    (
+                        _denormalise(inputs[idx]),
+                        int(targets[idx]),
+                        int(pred[idx]),
+                        float(conf[idx]),
+                    )
+                )
+                if len(misclassified) == max_misclassified:
+                    break
+
     y_true = np.concatenate(all_true)
     y_pred = np.concatenate(all_pred)
     y_conf = np.concatenate(all_conf)
@@ -132,20 +155,22 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dict
         "y_true": y_true,
         "y_pred": y_pred,
         "y_conf": y_conf,
+        "misclassified": misclassified,
     }
 
 
 def per_class_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> pd.DataFrame:
-    """Per-class support, correct, accuracy, precision, recall and F1.
+    """Per-class support, correct, precision, recall and F1.
 
-    Computed with numpy rather than pulling in scikit-learn: six formulas do
+    Computed with numpy rather than pulling in scikit-learn: five formulas do
     not justify a dependency, and writing them out makes the definitions
     visible instead of hidden behind an import.
 
-    Note that per-class accuracy and recall are the same quantity here
-    (TP / support) — both are kept because reviewers look for each by name.
-    Rows are sorted by accuracy ascending so the weakest classes are first,
-    which is where the interesting failure analysis lives.
+    Per-class *accuracy* is deliberately not reported. For single-label
+    classification it is identical to recall (both are TP / support), so a
+    separate column would just repeat the numbers and invite the reader to
+    treat two names as two measurements. Rows are sorted by recall ascending
+    so the weakest classes come first, which is where failure analysis lives.
     """
     rows = []
     for label, name in enumerate(CFG.classes):
@@ -165,21 +190,19 @@ def per_class_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> pd.DataFrame:
                 "class": name,
                 "support": support,
                 "correct": true_positive,
-                "accuracy": recall,
                 "precision": precision,
                 "recall": recall,
                 "f1": f1,
             }
         )
 
-    table = pd.DataFrame(rows).sort_values("accuracy", ascending=True).reset_index(drop=True)
+    table = pd.DataFrame(rows).sort_values("recall", ascending=True).reset_index(drop=True)
     # Macro average weights every class equally, which is the right summary for
     # a balanced test set and exposes a model that carries one weak class.
     macro = {
         "class": "macro avg",
         "support": int(table["support"].sum()),
         "correct": int(table["correct"].sum()),
-        "accuracy": float(table["accuracy"].mean()),
         "precision": float(table["precision"].mean()),
         "recall": float(table["recall"].mean()),
         "f1": float(table["f1"].mean()),
@@ -267,44 +290,28 @@ def _denormalise(image: torch.Tensor) -> np.ndarray:
     return (image.cpu() * std + mean).clamp(0, 1).permute(1, 2, 0).numpy()
 
 
-@torch.no_grad()
 def plot_misclassified(
-    model: nn.Module,
-    loader: DataLoader,
-    device: torch.device,
+    misclassified: list[tuple[np.ndarray, int, int, float]],
     out_path: Path | str,
-    n: int = 16,
 ) -> None:
-    """Grid of the first ``n`` misclassified test images, for qualitative review.
+    """Grid of misclassified test images, for qualitative review.
+
+    Takes the samples already gathered by ``evaluate`` rather than re-running
+    the model, so the test set is never read a second time.
 
     Aggregate metrics say how often the model is wrong; only looking at the
     failures says whether they are reasonable (a cat called a dog) or alarming
     (a truck called a bird). That distinction is the point of this figure.
     """
-    model.eval()
-    images: list[np.ndarray] = []
-    captions: list[str] = []
-
-    for inputs, targets in loader:
-        inputs, targets = inputs.to(device), targets.to(device)
-        probs = torch.softmax(model(inputs), dim=1)
-        conf, pred = probs.max(dim=1)
-
-        for idx in (pred != targets).nonzero(as_tuple=True)[0]:
-            images.append(_denormalise(inputs[idx]))
-            captions.append(
-                f"{CFG.classes[targets[idx]]} -> {CFG.classes[pred[idx]]} ({conf[idx]:.2f})"
-            )
-            if len(images) == n:
-                break
-        if len(images) == n:
-            break
-
+    n = len(misclassified)
     side = int(np.ceil(np.sqrt(n)))
     fig, axes = plt.subplots(side, side, figsize=(2 * side, 2.2 * side))
-    for ax, image, caption in zip(axes.flat, images, captions):
+    for ax, (image, true_label, pred_label, conf) in zip(axes.flat, misclassified):
         ax.imshow(image)
-        ax.set_title(caption, fontsize=8)
+        ax.set_title(
+            f"{CFG.classes[true_label]} -> {CFG.classes[pred_label]} ({conf:.2f})",
+            fontsize=8,
+        )
     for ax in axes.flat:
         ax.axis("off")
 
@@ -368,7 +375,7 @@ def main() -> None:
     confusion_path = artifacts_dir / CONFUSION_NAME
     misclassified_path = artifacts_dir / MISCLASSIFIED_NAME
     plot_confusion_matrix(cm, confusion_path)
-    plot_misclassified(model, test_loader, device, misclassified_path)
+    plot_misclassified(results["misclassified"], misclassified_path)
 
     print(f"\nmetrics    : {metrics_path}")
     print(f"confusion  : {confusion_path}")

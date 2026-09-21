@@ -10,7 +10,6 @@
       "class": "cat",
       "support": 1000,
       "correct": 520,
-      "accuracy": 0.52,
       "precision": 0.6396063960639606,
       "recall": 0.52,
       "f1": 0.573634859349145
@@ -19,7 +18,6 @@
       "class": "bird",
       "support": 1000,
       "correct": 649,
-      "accuracy": 0.649,
       "precision": 0.6457711442786069,
       "recall": 0.649,
       "f1": 0.6473815461346634
@@ -28,7 +26,6 @@
       "class": "dog",
       "support": 1000,
       "correct": 706,
-      "accuracy": 0.706,
       "precision": 0.6749521988527725,
       "recall": 0.706,
       "f1": 0.6901270772238515
@@ -37,7 +34,6 @@
       "class": "deer",
       "support": 1000,
       "correct": 720,
-      "accuracy": 0.72,
       "precision": 0.7280080889787665,
       "recall": 0.72,
       "f1": 0.7239819004524887
@@ -46,7 +42,6 @@
       "class": "horse",
       "support": 1000,
       "correct": 784,
-      "accuracy": 0.784,
       "precision": 0.8270042194092827,
       "recall": 0.784,
       "f1": 0.8049281314168379
@@ -55,7 +50,6 @@
       "class": "airplane",
       "support": 1000,
       "correct": 806,
-      "accuracy": 0.806,
       "precision": 0.72875226039783,
       "recall": 0.806,
       "f1": 0.7654320987654322
@@ -64,7 +58,6 @@
       "class": "ship",
       "support": 1000,
       "correct": 838,
-      "accuracy": 0.838,
       "precision": 0.8405215646940822,
       "recall": 0.838,
       "f1": 0.8392588883324987
@@ -73,7 +66,6 @@
       "class": "truck",
       "support": 1000,
       "correct": 846,
-      "accuracy": 0.846,
       "precision": 0.8376237623762376,
       "recall": 0.846,
       "f1": 0.8417910447761193
@@ -82,7 +74,6 @@
       "class": "frog",
       "support": 1000,
       "correct": 857,
-      "accuracy": 0.857,
       "precision": 0.7727682596934174,
       "recall": 0.857,
       "f1": 0.8127074442863917
@@ -91,7 +82,6 @@
       "class": "automobile",
       "support": 1000,
       "correct": 861,
-      "accuracy": 0.861,
       "precision": 0.8812691914022518,
       "recall": 0.861,
       "f1": 0.8710166919575114
@@ -100,7 +90,6 @@
       "class": "macro avg",
       "support": 10000,
       "correct": 7587,
-      "accuracy": 0.7586999999999999,
       "precision": 0.7576277086147208,
       "recall": 0.7586999999999999,
       "f1": 0.757025968269494

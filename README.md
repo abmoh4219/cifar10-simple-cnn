@@ -32,6 +32,44 @@ cifar10-simple-cnn/
 └── samples/             # Example images for predict.py
 ```
 
+## Inference
+
+`predict.py` runs as its own process and cold-loads the checkpoint from disk —
+nothing is carried over from training. It reuses the evaluation transform from
+`src/data.py` rather than redefining the normalisation constants.
+
+```bash
+python -m src.predict                                    # all images in samples/
+python -m src.predict --images path/to/cat.png --topk 5  # specific files
+python -m src.predict --save-figure artifacts/predictions.png
+```
+
+```
+device     : cpu
+checkpoint : artifacts/best_model.pt
+  trained to epoch 19, val_acc 0.7480
+images     : 10
+
+samples/sample_3_cat.png
+  true: cat        [CORRECT]
+    1. cat         85.04%
+    2. dog          7.89%
+    3. frog         4.11%
+
+samples/sample_4_deer.png
+  true: deer       [WRONG]
+    1. bird        29.18%
+    2. deer        28.00%
+    3. ship        20.30%
+
+accuracy on 10 labelled image(s): 8/10 = 0.8000
+```
+
+Images that are not 32x32 are resized, with a printed notice. Greyscale and
+transparent images are converted to RGB. The true label shown is parsed from
+the `sample_<idx>_<classname>.png` filename for display only — it never
+reaches the model.
+
 ## Results
 
 (filled in after training)

@@ -1,0 +1,67 @@
+device     : cpu
+checkpoint : artifacts/best_model.pt
+  trained to epoch 19, val_acc 0.7480
+images     : 10
+
+samples/sample_0_airplane.png
+  true: airplane   [CORRECT]
+    1. airplane    40.50%
+    2. ship        28.81%
+    3. automobile  27.00%
+
+samples/sample_1_automobile.png
+  true: automobile [CORRECT]
+    1. automobile  89.10%
+    2. cat          3.58%
+    3. truck        3.37%
+
+samples/sample_2_bird.png
+  true: bird       [WRONG]  
+    1. deer        40.36%
+    2. frog        26.77%
+    3. bird        19.77%
+
+samples/sample_3_cat.png
+  true: cat        [CORRECT]
+    1. cat         85.04%
+    2. dog          7.89%
+    3. frog         4.11%
+
+samples/sample_4_deer.png
+  true: deer       [WRONG]  
+    1. bird        29.18%
+    2. deer        28.00%
+    3. ship        20.30%
+
+samples/sample_5_dog.png
+  true: dog        [CORRECT]
+    1. dog         67.95%
+    2. cat         22.14%
+    3. frog         5.24%
+
+samples/sample_6_frog.png
+  true: frog       [CORRECT]
+    1. frog        97.77%
+    2. deer         0.91%
+    3. cat          0.87%
+
+samples/sample_7_horse.png
+  true: horse      [CORRECT]
+    1. horse       97.73%
+    2. automobile   1.15%
+    3. truck        0.38%
+
+samples/sample_8_ship.png
+  true: ship       [CORRECT]
+    1. ship        74.58%
+    2. automobile  25.00%
+    3. airplane     0.37%
+
+samples/sample_9_truck.png
+  true: truck      [CORRECT]
+    1. truck       99.69%
+    2. automobile   0.31%
+    3. airplane     0.00%
+
+accuracy on 10 labelled image(s): 8/10 = 0.8000
+figure     : artifacts/predictions.png
