@@ -22,7 +22,7 @@ print(x_np)
 print(x)
 print(xm)
 
-"""
+
 
 # Datasets & DataLoaders
 
@@ -48,3 +48,5 @@ test_data = datasets.FashionMNIST(
     download=True,
     transform=v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)])
 )
+
+"""
